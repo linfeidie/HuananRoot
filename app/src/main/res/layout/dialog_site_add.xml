@@ -20,34 +20,16 @@
         <EditText
             android:id="@+id/et_name"
             android:layout_width="match_parent"
-            android:minWidth="100dp"
-            android:layout_height="40dp"
+            android:minWidth="150dp"
+            android:layout_height="50dp"
             android:paddingLeft="5dp"
             android:background="@drawable/line_large_area"
             android:layout_marginLeft="20dp"
+            android:text="3333"
+            android:textColor="@android:color/black"
              />
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="节点序列号" />
-
-        <EditText
-            android:id="@+id/et_num"
-            android:layout_width="100dp"
-            android:layout_height="40dp"
-            android:paddingLeft="5dp"
-            android:background="@drawable/line_large_area"
-            android:layout_marginLeft="20dp"
-            android:text="" />
-    </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -60,14 +42,57 @@
             android:layout_height="wrap_content"
             android:text="节点方向" />
 
-        <EditText
-            android:id="@+id/et_dir"
-            android:layout_width="100dp"
-            android:layout_height="40dp"
-            android:paddingLeft="5dp"
-            android:background="@drawable/line_large_area"
-            android:layout_marginLeft="20dp"
-            android:text="" />
+        <RadioGroup
+            android:id="@+id/radioGroup_dir"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            >
+            <RadioButton
+                android:id="@+id/rb_dir_top"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="2dp"
+                android:background="@null"
+                android:button="@null"
+                android:drawableTop="@drawable/selector_chose_dir"
+                android:drawablePadding="8dp"
+                android:text="上"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:gravity="center_horizontal"
+             />
+            <RadioButton
+                android:id="@+id/rb_dir_left"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="2dp"
+                android:background="@null"
+                android:button="@null"
+                android:checked="false"
+                android:drawableTop="@drawable/selector_chose_dir"
+                android:drawablePadding="8dp"
+                android:text="左"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:gravity="center_horizontal"
+                />
+            <RadioButton
+                android:id="@+id/rb_dir_right"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="2dp"
+                android:background="@null"
+                android:button="@null"
+                android:checked="false"
+                android:drawableTop="@drawable/selector_chose_dir"
+                android:drawablePadding="8dp"
+                android:text="右"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:gravity="center_horizontal"/>
+        </RadioGroup>
     </LinearLayout>
 
     <LinearLayout
@@ -80,11 +105,47 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="是否是工位" />
-        <CheckBox
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="是"/>
 
+        <RadioGroup
+            android:id="@+id/radioGroup_work"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            >
+            <RadioButton
+                android:id="@+id/rb_work_yes"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="2dp"
+                android:background="@null"
+                android:button="@null"
+                android:drawableTop="@drawable/selector_chose_dir"
+                android:drawablePadding="8dp"
+                android:text="是"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:tag="true"
+                android:gravity="center_horizontal"
+                />
+            <RadioButton
+                android:id="@+id/rb_work_no"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="2dp"
+                android:background="@null"
+                android:button="@null"
+                android:checked="false"
+                android:drawableTop="@drawable/selector_chose_dir"
+                android:drawablePadding="8dp"
+                android:text="否"
+                android:tag="false"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:gravity="center_horizontal"
+                />
+
+        </RadioGroup>
     </LinearLayout>
 
     <Button

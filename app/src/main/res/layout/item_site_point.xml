@@ -34,15 +34,4 @@
         android:layout_height="wrap_content"
 
         android:text="工位" />
-    <TextView
-        android:id="@+id/tv_delete"
-        android:layout_weight="1"
-        android:layout_width="98dp"
-        android:layout_height="wrap_content"
-
-        android:background="@drawable/shape_button"
-        android:gravity="center"
-        android:text="删除节点"
-        android:textStyle="bold"
-        android:textColor="@android:color/white" />
 </LinearLayout>

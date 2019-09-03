@@ -1,5 +1,7 @@
 package ac.scri.com.huananroot;
 
+import java.util.List;
+
 /**
  * 文件描述：.
  * <p>
@@ -22,5 +24,21 @@ public class SiteNode {
         LEFT, UP, RIGHT, DOWN
     }
 
+    public List<String> dirs;
 
+    @Override
+    public String toString() {
+        return "SiteNode{" +
+                "nodeName='" + nodeName + '\'' +
+                ", nodeNum=" + nodeNum +
+                ", dodeDirection=" + dodeDirection +
+                ", noteDir='" + noteDir + '\'' +
+                ", isWork=" + isWork +
+                ", dirs=" + dirs +
+                '}';
+    }
+
+    public void setDirs(List<String> dirs) {
+        this.dirs = dirs;
+    }
 }

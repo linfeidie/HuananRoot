@@ -3,6 +3,8 @@ package ac.scri.com.huananroot.view.nicedialog;
 import android.support.annotation.IdRes;
 import android.util.SparseArray;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 public class ViewHolder {
@@ -50,6 +52,11 @@ public class ViewHolder {
     public void setOnClickListener(int viewId, View.OnClickListener clickListener) {
         View view = getView(viewId);
         view.setOnClickListener(clickListener);
+    }
+
+    public void setOnCheckedChangeListener(int viewId, CompoundButton.OnCheckedChangeListener checkedChangeListener) {
+        CheckBox view = (CheckBox)getView(viewId);
+        view.setOnCheckedChangeListener(checkedChangeListener);
     }
 
     public void setBackgroundResource(int viewId, int resId) {

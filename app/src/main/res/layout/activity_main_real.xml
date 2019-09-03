@@ -69,18 +69,36 @@
                 android:id="@+id/rv_progress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
-            <Button
-                android:id="@+id/iv_add"
-                android:layout_width="100dp"
-                android:layout_height="50dp"
-                android:text="添加节点"
-                android:background="@drawable/shape_button"
-                android:textColor="@android:color/white"
-                android:layout_gravity="center"
-                />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_horizontal">
+                <Button
+                    android:id="@+id/iv_add"
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+                    android:text="添加节点"
+                    android:background="@drawable/shape_button"
+                    android:textColor="@android:color/white"
+
+                    />
+                <Button
+                    android:id="@+id/bt_start"
+                    android:layout_marginLeft="50dp"
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+                    android:text="启动"
+                    android:background="@drawable/shape_button"
+                    android:textColor="@android:color/white"
+                    android:onClick="bt_start"
+                    />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:orientation="horizontal">
                 <TextView
                     android:layout_weight="1"
