@@ -14,7 +14,7 @@
         android:gravity="center"
         android:background="@color/colorPrimaryDark"
         android:textColor="@android:color/white"
-        android:text="机器人调度系统"
+        android:text="机器人调度系统   A小车"
         android:textSize="20sp"
         />
 
@@ -26,33 +26,43 @@
         android:layout_marginLeft="20dp"
         >
         <TextView
+            android:id="@+id/tv_state"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:textStyle="bold"
-            android:drawableBottom="@mipmap/ic_status_ok"
             android:text="状态"/>
         <TextView
+            android:id="@+id/tv_power"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:textStyle="bold"
             android:text="电量"
-            android:drawableBottom="@mipmap/ic_battery_75"/>
+            />
         <TextView
+            android:id="@+id/tv_error"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:textStyle="bold"
             android:text="故障"/>
-
         <TextView
+            android:id="@+id/tv_loading"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="120dp"
+            android:layout_marginLeft="20dp"
             android:textStyle="bold"
-            android:textSize="20sp"
-            android:text="小车名称:A小车"/>
+            android:text=""/>
+
+        <TextView
+            android:id="@+id/tv_zhan_point"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:textStyle="bold"
+            android:text=""/>
+
     </LinearLayout>
 
     <LinearLayout

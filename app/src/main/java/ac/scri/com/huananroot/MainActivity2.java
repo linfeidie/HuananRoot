@@ -32,7 +32,6 @@ import java.util.List;
 
 import ac.scri.com.huananroot.adapter.ZhanPointRecycleAdapter;
 import ac.scri.com.huananroot.view.HorizontalProgressViewModel;
-import ac.scri.com.huananroot.view.MainActivity;
 import ac.scri.com.huananroot.view.Node;
 import ac.scri.com.huananroot.view.PointRecycleAdapter;
 import ac.scri.com.huananroot.view.nicedialog.BaseNiceDialog;
@@ -45,25 +44,26 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
     public static final String TAG = MainActivity2.class.getSimpleName();
 
     // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("native-lib");
-    }
+//    static {
+//        System.loadLibrary("native-lib");
+//    }
     private SerialPortManager mSerialPortManager;
-    private boolean isStarted = false;
+    private static volatile boolean isStarted = false;
     public static final int TEST = 0;
     public static final int PRODUCE = 1 ;
     private int crrentEnv = TEST;
     private boolean stateChange = false;
     private Toast mToast;
-    private int  index = 1;
+    private static int  index = 1;
     private PointRecycleAdapter adapter;
     private ZhanPointRecycleAdapter zhanPointRecycleAdapter;
     private RecyclerView mRecyclerView;
     private RecyclerView rv_zhan_point;
     private Button iv_add;
     private Button bt_start;
+    private TextView tv_state,tv_power,tv_loading,tv_error,tv_zhan_point;
     private List<SiteNode> list = new ArrayList<SiteNode>();
-    private List<SiteNode> zhanPoints = new ArrayList<SiteNode>();
+    private static List<SiteNode> zhanPoints = new ArrayList<SiteNode>();
     public List<String> mDirs = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -199,11 +199,11 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                                 Log.i(TAG, "当前电量:" + power);
                                 //showToast(+"");
 
-//                                tv_running.setText("状态:" + (isRunning?"运行":"空闲"));
-//                                tv_loading.setText("是否转载:" + (isLoading?"装载":"空载"));
-//                                tv_error.setText("是否异常:" + (isError?"异常":"正常"));
-//                                tv_power.setText("当前电量:" + power+"%");
-//                                tv_zhan_point.setText("当前站点:"+zhanPoint);
+                                tv_state.setText("状态:" + (isRunning?"运行":"空闲"));
+                                tv_loading.setText("装载情况:" + (isLoading?"装载":"空载"));
+                                tv_error.setText("异常情况:" + (isError?"异常":"正常"));
+                                tv_power.setText("电量:" + power+"%");
+                                tv_zhan_point.setText("当前站点:"+zhanPoint);
 
                                 if(!isRunning && isStarted) {//空闲状态
 
@@ -211,16 +211,14 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
 
                                         if(!stateChange) {
                                             stateChange = true;
-//                                            if(index == obtainDirs().size()) {
-//                                              Toast.makeText(MainActivity2.this,"已经走完全程",Toast.LENGTH_SHORT).show();
-//                                                index = 0;
-//                                            }else{
-//                                                gotoOther(obtainDirs().get(index).replace("[","").replace("]",""));
-//
-//                                                index++;
-//                                            }
-                                            gotoOther(obtainDirs().get(index).replace("[","").replace("]",""));
-                                            index ++;
+                                            if(index == obtainDirs().size()) {
+                                              Toast.makeText(MainActivity2.this,"已经走完全程",Toast.LENGTH_SHORT).show();
+                                               // index = 0;
+                                            }else{
+                                                gotoOther(obtainDirs().get(index).replace("[","").replace("]",""));
+                                                index ++;
+
+                                            }
 
 
                                         }
@@ -236,7 +234,6 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                             }
                         });
                     }
-
 
 
                     @Override
@@ -315,6 +312,11 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_site);
         rv_zhan_point  = findViewById(R.id.rv_zhan_point);
 
+        tv_state = findViewById(R.id.tv_state);
+        tv_power = findViewById(R.id.tv_power);
+        tv_error = findViewById(R.id.tv_error);
+        tv_loading = findViewById(R.id.tv_loading);
+        tv_zhan_point = findViewById(R.id.tv_zhan_point);
     }
 
     protected ArrayList<SiteNode> initData() {
@@ -331,7 +333,10 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
     }
 
     public void bt_start(View view){
-
+        if(obtainDirs() == null || obtainDirs().size() < 1) {
+            showToast("请添加站点");
+            return;
+        }
         gotoOther(obtainDirs().get(0).replace("[","").replace("]",""));
         Log.i(TAG,  obtainDirs().toString());
        // List<String> dirs = obtainDirs();
@@ -354,7 +359,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.
      */
-    public native String stringFromJNI();
+   // public native String stringFromJNI();
 
     @Override
     public void onSuccess(File device) {
