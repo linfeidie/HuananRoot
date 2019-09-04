@@ -50,21 +50,23 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
     private SerialPortManager mSerialPortManager;
     private static volatile boolean isStarted = false;
     public static final int TEST = 0;
-    public static final int PRODUCE = 1 ;
+    public static final int PRODUCE = 1;
     private int crrentEnv = TEST;
     private boolean stateChange = false;
     private Toast mToast;
-    private static int  index = 1;
+    private static int index = 1;
     private PointRecycleAdapter adapter;
     private ZhanPointRecycleAdapter zhanPointRecycleAdapter;
     private RecyclerView mRecyclerView;
     private RecyclerView rv_zhan_point;
     private Button iv_add;
     private Button bt_start;
-    private TextView tv_state,tv_power,tv_loading,tv_error,tv_zhan_point;
+    private TextView tv_state, tv_power, tv_loading, tv_error, tv_zhan_point;
+    private TextView tv_empty_site;
     private List<SiteNode> list = new ArrayList<SiteNode>();
     private static List<SiteNode> zhanPoints = new ArrayList<SiteNode>();
     public List<String> mDirs = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,48 +92,55 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                 NiceDialog.init().setLayoutId(R.layout.dialog_site_add)
                         .setConvertListener(new ViewConvertListener() {
                             String dir = "上";
+
                             @Override
                             public void convertView(final ViewHolder holder, final BaseNiceDialog dialog) {
 
-                                ((RadioButton)holder.getView(R.id.rb_dir_top)).setChecked(true);
-                                ((RadioButton)holder.getView(R.id.rb_work_yes)).setChecked(true);
-                                ((RadioGroup)holder.getView(R.id.radioGroup_dir)).setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                                ((RadioButton) holder.getView(R.id.rb_dir_top)).setChecked(true);
+                                ((RadioButton) holder.getView(R.id.rb_work_yes)).setChecked(true);
+                                ((RadioGroup) holder.getView(R.id.radioGroup_dir)).setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
                                     @Override
                                     public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
-                                        RadioButton radioButton_checked= (RadioButton) radioGroup.findViewById(checkedId);
-                                        dir =  radioButton_checked.getText().toString();
+                                        RadioButton radioButton_checked = (RadioButton) radioGroup.findViewById(checkedId);
+                                        dir = radioButton_checked.getText().toString();
+                                    }
+                                });
+                                holder.setOnClickListener(R.id.bt_cancel, new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        dialog.dismiss();
                                     }
                                 });
                                 holder.setOnClickListener(R.id.bt_sure, new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
-                                        
-                                        String name = ((EditText)holder.getView(R.id.et_name)).getText().toString();
+
+                                        String name = ((EditText) holder.getView(R.id.et_name)).getText().toString();
 
 
-                                        if(TextUtils.isEmpty(name) ) {
-                                            Toast.makeText(MainActivity2.this,"信息不完整",Toast.LENGTH_SHORT).show();
+                                        if (TextUtils.isEmpty(name)) {
+                                            Toast.makeText(MainActivity2.this, "信息不完整", Toast.LENGTH_SHORT).show();
                                             return;
                                         }
 
                                         int position = list.size();
-                                      //  在list中添加数据，并通知条目加入一条
+                                        //  在list中添加数据，并通知条目加入一条
                                         SiteNode siteNode = new SiteNode();
                                         siteNode.nodeName = name;
                                         siteNode.noteDir = dir;
-                                        siteNode.isWork= ((RadioButton)holder.getView(R.id.rb_work_yes)).isChecked();
+                                        siteNode.isWork = ((RadioButton) holder.getView(R.id.rb_work_yes)).isChecked();
                                         mDirs.add(dir);
-                                        if(siteNode.isWork) {
+                                        if (siteNode.isWork) {
 
 
                                             try {
-                                                List<String> copy  = Tool.deepCopy(mDirs);
+                                                List<String> copy = Tool.deepCopy(mDirs);
                                                 siteNode.setDirs(copy);
                                             } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
 
-                                           mDirs.clear();
+                                            mDirs.clear();
 
                                         }
                                         list.add(siteNode);
@@ -148,7 +157,9 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                                         //adapter.addData(position,siteNode);
 
                                         adapter.setList(list);
-
+                                        if (adapter.getItemCount() != 0) {
+                                            tv_empty_site.setVisibility(View.GONE);
+                                        }
                                         dialog.dismiss();
                                     }
                                 });
@@ -157,7 +168,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                         .setDimAmount(0.3f)
                         .setPosition(Gravity.CENTER)
                         .setWidth(400)
-                        .setOutCancel(true)
+                        .setOutCancel(false)
                         .show(getSupportFragmentManager());
 
             }
@@ -165,7 +176,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
     }
 
     private void initSerialPort() {
-        Device device = new Device("ttySAC3","g_serial",new File("/dev/ttySAC3"));
+        Device device = new Device("ttySAC3", "g_serial", new File("/dev/ttySAC3"));
         Log.i(TAG, "onCreate: device = " + device);
         if (null == device) {
             finish();
@@ -184,52 +195,67 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                             @Override
                             public void run() {
 
-                                boolean isRunning =  ((bytes[4]) & 0X1)  == 1;
-                                Log.i(TAG, "状态:" + (isRunning?"运行":"空闲"));
-                                if(isRunning) {
+                                boolean isRunning = ((bytes[4]) & 0X1) == 1;
+                                Log.i(TAG, "状态:" + (isRunning ? "运行" : "空闲"));
+                                if (isRunning) {
                                     isStarted = true;
                                 }
-                                boolean isLoading =  ((bytes[4]>>1) & 0X1)  == 1;
-                                Log.i(TAG, "是否转载:" + (isLoading?"装载":"空载"));
-                                boolean isError =  ((bytes[4]>>2) & 0X1)  == 1;
-                                Log.i(TAG, "是否异常:" + (isError?"异常":"正常"));
-                                int zhanPoint = (int)bytes[5];
+                                boolean isLoading = ((bytes[4] >> 1) & 0X1) == 1;
+                                Log.i(TAG, "是否装载:" + (isLoading ? "装载" : "空载"));
+                                boolean isError = ((bytes[4] >> 2) & 0X1) == 1;
+                                Log.i(TAG, "是否异常:" + (isError ? "异常" : "正常"));
+                                int zhanPoint = (int) bytes[5];
                                 Log.i(TAG, "当前站点:" + zhanPoint);
-                                int power = (int)bytes[6];
+                                int power = (int) bytes[6];
                                 Log.i(TAG, "当前电量:" + power);
+                                int isOrder = (int) bytes[7];
+                                Log.i(TAG, "是否发命令:" + isOrder);
                                 //showToast(+"");
 
-                                tv_state.setText("状态:" + (isRunning?"运行":"空闲"));
-                                tv_loading.setText("装载情况:" + (isLoading?"装载":"空载"));
-                                tv_error.setText("异常情况:" + (isError?"异常":"正常"));
-                                tv_power.setText("电量:" + power+"%");
-                                tv_zhan_point.setText("当前站点:"+zhanPoint);
+                                tv_state.setText("状态:" + (isRunning ? "运行" : "空闲"));
+                                tv_loading.setText("装载情况:" + (isLoading ? "装载" : "空载"));
+                                tv_error.setText("异常情况:" + (isError ? "异常" : "正常"));
+                                tv_power.setText("电量:" + power + "%");
+                                tv_zhan_point.setText("当前站点:" + zhanPoint);
 
-                                if(!isRunning && isStarted) {//空闲状态
+//                                if(!isRunning && isStarted && !isLoading) {//空闲状态
+//
+//                                    if(crrentEnv == TEST) {
+//
+//                                        if(!stateChange) {
+//                                            stateChange = true;
+//                                            if(index == obtainDirs().size()) {
+//                                              Toast.makeText(MainActivity2.this,"已经走完全程",Toast.LENGTH_SHORT).show();
+//                                               // index = 0;
+//                                            }else{
+//                                                gotoOther(obtainDirs().get(index).replace("[","").replace("]",""));
+//                                                index ++;
+//
+//                                            }
+//
+//
+//                                        }
+//
+//
+//                                    }else if(crrentEnv == PRODUCE && isLoading) {
+//                                        //gotoOther();
+//                                    }
+//
+//                                }else{
+//                                    stateChange = false;
+//                                }
 
-                                    if(crrentEnv == TEST) {
+                                if (isOrder == 1 && obtainDirs() != null) {
 
-                                        if(!stateChange) {
-                                            stateChange = true;
-                                            if(index == obtainDirs().size()) {
-                                              Toast.makeText(MainActivity2.this,"已经走完全程",Toast.LENGTH_SHORT).show();
-                                               // index = 0;
-                                            }else{
-                                                gotoOther(obtainDirs().get(index).replace("[","").replace("]",""));
-                                                index ++;
+                                    if (index == obtainDirs().size()) {
+                                        Toast.makeText(MainActivity2.this, "已经走完全程", Toast.LENGTH_SHORT).show();
+                                        bt_start.setEnabled(true);
+                                        // index = 0;
+                                    } else {
+                                        gotoOther(obtainDirs().get(index).replace("[", "").replace("]", ""));
+                                        index++;
 
-                                            }
-
-
-                                        }
-
-
-                                    }else if(crrentEnv == PRODUCE && isLoading) {
-                                        //gotoOther();
                                     }
-
-                                }else{
-                                    stateChange = false;
                                 }
                             }
                         });
@@ -288,11 +314,12 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         return list;
 
     }
+
     private void initRecycle() {
         //  纵向滑动
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(linearLayoutManager);
-        mRecyclerView.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
+        mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         list = initData();
         adapter = new PointRecycleAdapter(MainActivity2.this, list);
         mRecyclerView.setAdapter(adapter);
@@ -300,23 +327,26 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
         LinearLayoutManager linearLayoutManager2 = new LinearLayoutManager(this);
-       rv_zhan_point.setLayoutManager(linearLayoutManager2);
-       rv_zhan_point.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
-       zhanPointRecycleAdapter = new ZhanPointRecycleAdapter(MainActivity2.this,zhanPoints);
-       rv_zhan_point.setItemAnimator(new DefaultItemAnimator());
-       rv_zhan_point.setAdapter(zhanPointRecycleAdapter);
+        rv_zhan_point.setLayoutManager(linearLayoutManager2);
+        rv_zhan_point.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+        zhanPointRecycleAdapter = new ZhanPointRecycleAdapter(MainActivity2.this, zhanPoints);
+        rv_zhan_point.setItemAnimator(new DefaultItemAnimator());
+        rv_zhan_point.setAdapter(zhanPointRecycleAdapter);
     }
+
     private void initView() {
         iv_add = (Button) findViewById(R.id.iv_add);
         bt_start = findViewById(R.id.bt_start);//启动
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_site);
-        rv_zhan_point  = findViewById(R.id.rv_zhan_point);
+        rv_zhan_point = findViewById(R.id.rv_zhan_point);
 
         tv_state = findViewById(R.id.tv_state);
         tv_power = findViewById(R.id.tv_power);
         tv_error = findViewById(R.id.tv_error);
         tv_loading = findViewById(R.id.tv_loading);
         tv_zhan_point = findViewById(R.id.tv_zhan_point);
+
+        tv_empty_site = findViewById(R.id.tv_empty_site);
     }
 
     protected ArrayList<SiteNode> initData() {
@@ -332,23 +362,87 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         return mDatas;
     }
 
-    public void bt_start(View view){
-        if(obtainDirs() == null || obtainDirs().size() < 1) {
-            showToast("请添加站点");
-            return;
-        }
-        gotoOther(obtainDirs().get(0).replace("[","").replace("]",""));
-        Log.i(TAG,  obtainDirs().toString());
-       // List<String> dirs = obtainDirs();
+    public void bt_start(View view) {
+        if(bt_start.isEnabled()) {
+            NiceDialog.init().setLayoutId(R.layout.dialog_request_sure).setConvertListener(new ViewConvertListener() {
+                @Override
+                public void convertView(ViewHolder holder, final BaseNiceDialog dialog) {
+                    holder.setOnClickListener(R.id.bt_sure, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            if (obtainDirs() == null || obtainDirs().size() < 1) {
+                                showToast("请添加站点");
+                                return;
+                            }
+                            index = 0;
+                            gotoOther(obtainDirs().get(index).replace("[", "").replace("]", ""));
+                            index ++;
+                            Log.i(TAG, obtainDirs().toString());
+                            dialog.dismiss();
+                            bt_start.setEnabled(false);
 
-       // Toast.makeText(this,dirs.toString(),Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    holder.setOnClickListener(R.id.bt_cancel, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            dialog.dismiss();
+                        }
+                    });
+                }
+            }).setDimAmount(0.3f).setPosition(Gravity.CENTER).setWidth(400).setOutCancel(false).show(getSupportFragmentManager());
+        }else {
+            showToast("机器人还没走完全程,不可点击");
+        }
+
+    }
+
+    public void bt_stop(View view){
+        if(mSerialPortManager != null) {
+            mSerialPortManager.stop();
+        }
+
+
+    }
+    /*
+     * 清除站点
+     * */
+    public void bt_delete(View view) {
+        NiceDialog.init().setLayoutId(R.layout.dialog_request_sure).setConvertListener(new ViewConvertListener() {
+            @Override
+            public void convertView(ViewHolder holder, final BaseNiceDialog dialog) {
+                ((TextView)holder.getView(R.id.tv_message)).setText("确定全部删除吗?");
+                holder.setOnClickListener(R.id.bt_sure, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        list.clear();
+                        adapter.notifyDataSetChanged();
+                        tv_empty_site.setVisibility(View.VISIBLE);
+                        zhanPoints.clear();
+                        zhanPointRecycleAdapter.notifyDataSetChanged();
+                        bt_start.setEnabled(true);
+                        dialog.dismiss();
+                    }
+                });
+                holder.setOnClickListener(R.id.bt_cancel, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        dialog.dismiss();
+                    }
+                });
+            }
+        }).setDimAmount(0.3f).setPosition(Gravity.CENTER).setWidth(400).setOutCancel(false).show(getSupportFragmentManager());
+
+
+
+
     }
 
     private List<String> obtainDirs() {
-        if(zhanPoints.size() == 0) {
+        if (zhanPoints.size() == 0) {
             return null;
         }
-        List<String> dirs= new ArrayList<>();
+        List<String> dirs = new ArrayList<>();
         for (int i = 0; i < zhanPoints.size(); i++) {
             dirs.add(zhanPoints.get(i).dirs.toString());
         }
@@ -359,8 +453,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.
      */
-   // public native String stringFromJNI();
-
+    // public native String stringFromJNI();
     @Override
     public void onSuccess(File device) {
         Toast.makeText(getApplicationContext(), String.format("串口 [%s] 打开成功", device.getPath()), Toast.LENGTH_SHORT).show();
@@ -378,6 +471,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                 break;
         }
     }
+
     /**
      * 显示提示框
      *
@@ -398,11 +492,11 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                 .create()
                 .show();
     }
+
     private void gotoOther(String line) {
 
         mSerialPortManager.lineOrder(line);
-        Log.i(TAG,  "gotoOther()==="+line);
-
+        Log.i(TAG, "gotoOther()===" + line);
 
 
 //        Log.i(TAG, "onSend: sendBytes = " + sendBytes);

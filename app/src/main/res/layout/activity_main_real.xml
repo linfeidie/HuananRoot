@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:gravity="center"
-        android:background="@color/colorPrimaryDark"
+        android:background="@color/major_green"
         android:textColor="@android:color/white"
         android:text="机器人调度系统   A小车"
         android:textSize="20sp"
@@ -83,6 +83,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:layout_marginTop="10dp"
                 android:gravity="center_horizontal">
                 <Button
                     android:id="@+id/iv_add"
@@ -95,13 +96,34 @@
                     />
                 <Button
                     android:id="@+id/bt_start"
-                    android:layout_marginLeft="50dp"
+                    android:layout_marginLeft="20dp"
                     android:layout_width="100dp"
                     android:layout_height="50dp"
                     android:text="启动"
                     android:background="@drawable/shape_button"
                     android:textColor="@android:color/white"
                     android:onClick="bt_start"
+                    />
+                <Button
+                    android:id="@+id/bt_delete"
+                    android:layout_marginLeft="20dp"
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+                    android:text="清除站点"
+                    android:background="@drawable/shape_button"
+                    android:textColor="@android:color/white"
+                    android:onClick="bt_delete"
+                    />
+
+                <Button
+                    android:id="@+id/bt_stop"
+                    android:layout_marginLeft="20dp"
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+                    android:text="急停"
+                    android:background="@drawable/shape_button_red"
+                    android:textColor="@android:color/white"
+                    android:onClick="bt_stop"
                     />
             </LinearLayout>
 
@@ -141,10 +163,24 @@
                     android:gravity="center"
                     android:text=""/>
             </LinearLayout>
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/rv_site"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="match_parent">
+                <TextView
+                    android:id="@+id/tv_empty_site"
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:drawablePadding="10dp"
+                    android:text="暂无站点,快来添加站点试试吧"
+                    android:drawableTop="@mipmap/ic_empty_box"/>
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/rv_site"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </FrameLayout>
+
         </LinearLayout>
         <FrameLayout
             android:layout_weight="4"
