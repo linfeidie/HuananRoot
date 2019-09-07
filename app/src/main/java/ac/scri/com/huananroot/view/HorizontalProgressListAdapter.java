@@ -10,6 +10,7 @@ import android.widget.TextView;
 import java.util.List;
 
 import ac.scri.com.huananroot.R;
+import ac.scri.com.huananroot.SiteNode;
 
 /**
  * Description :取消订单处理进度
@@ -20,9 +21,9 @@ import ac.scri.com.huananroot.R;
 public class HorizontalProgressListAdapter extends
         RecyclerView.Adapter<HorizontalProgressListAdapter.OrderProgressViewHolder> {
 
-    private final List<Node> list;
+    private final List<SiteNode> list;
 
-    public HorizontalProgressListAdapter(List<Node> list) {
+    public HorizontalProgressListAdapter(List<SiteNode> list) {
         this.list = list;
     }
 
@@ -45,7 +46,7 @@ public class HorizontalProgressListAdapter extends
 
     @Override
     public void onBindViewHolder(OrderProgressViewHolder holder, int position) {
-        Node node = list.get(position);
+        SiteNode node = list.get(position);
         if (position == 0) {
             // 第一个节点:隐藏line
             holder.leftLine.setVisibility(View.INVISIBLE);

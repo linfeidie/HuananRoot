@@ -6,6 +6,8 @@ import android.support.v7.widget.RecyclerView;
 
 import java.util.List;
 
+import ac.scri.com.huananroot.SiteNode;
+
 /**
  * Description :横向的时间轴
  * Author : Liun
@@ -13,13 +15,16 @@ import java.util.List;
  * Email  : liun_coolman@foxmail.com
  */
 public class HorizontalProgressViewModel {
+
+    private RecyclerView recyclerView;
     /**
      * 取消订单
      * @param context
      * @param recyclerView
      * @param list
      */
-    public void setViewUp(Context context, RecyclerView recyclerView, List<Node> list) {
+    public void setViewUp(Context context, RecyclerView recyclerView, List<SiteNode> list) {
+        this.recyclerView = recyclerView;
         // 设置订单处理进度
         recyclerView.setLayoutManager(
                 new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -27,5 +32,9 @@ public class HorizontalProgressViewModel {
 
         recyclerView.setAdapter(new HorizontalProgressListAdapter(list));
 
+    }
+
+    public void updateData( List<SiteNode> list){
+        recyclerView.setAdapter(new HorizontalProgressListAdapter(list));
     }
 }

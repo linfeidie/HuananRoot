@@ -51,4 +51,14 @@ public class Tool {
         List<T> dest = (List<T>) in.readObject();
         return dest;
     }
+
+    /*
+    * 清掉[ ] 特殊字符
+    * */
+    public static String trimStr(String old){
+        if(old != null) {
+            return old.replace("[", "").replace("]", "");
+        }
+        return "";
+    }
 }

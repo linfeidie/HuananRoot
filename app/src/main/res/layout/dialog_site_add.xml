@@ -26,7 +26,7 @@
             android:paddingLeft="5dp"
             android:background="@drawable/line_large_area"
             android:layout_marginLeft="20dp"
-            android:text="3333"
+            android:text="自定义名称"
             android:textColor="@android:color/black"
              />
     </LinearLayout>

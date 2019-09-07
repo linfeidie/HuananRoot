@@ -12,6 +12,7 @@ import java.util.List;
 
 import ac.scri.com.huananroot.R;
 import ac.scri.com.huananroot.SiteNode;
+import ac.scri.com.huananroot.Tool;
 
 /**
  * 文件描述：.
@@ -50,6 +51,7 @@ public class ZhanPointRecycleAdapter extends RecyclerView.Adapter<ZhanPointRecyc
         SiteNode siteNode = list.get(position);
         holder.tv_name.setText(siteNode.nodeName);
         holder.tv_num.setText(siteNode.nodeNum+"");
+        holder.tv_current.setText(Tool.trimStr(siteNode.dirs.toString()));
     }
 
     @Override

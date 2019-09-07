@@ -26,6 +26,9 @@ public class SiteNode {
 
     public List<String> dirs;
 
+    // 0 已完成状态  1正在处理状态  -1待处理状态
+    public int nodeStatus = -1;
+
     @Override
     public String toString() {
         return "SiteNode{" +

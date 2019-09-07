@@ -20,19 +20,23 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.kongqw.serialportlibrary.CommandControl;
 import com.kongqw.serialportlibrary.Device;
 import com.kongqw.serialportlibrary.SerialPortManager;
 import com.kongqw.serialportlibrary.listener.OnOpenSerialPortListener;
 import com.kongqw.serialportlibrary.listener.OnSerialPortDataListener;
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import ac.scri.com.huananroot.adapter.ZhanPointRecycleAdapter;
 import ac.scri.com.huananroot.view.HorizontalProgressViewModel;
-import ac.scri.com.huananroot.view.Node;
 import ac.scri.com.huananroot.view.PointRecycleAdapter;
 import ac.scri.com.huananroot.view.nicedialog.BaseNiceDialog;
 import ac.scri.com.huananroot.view.nicedialog.NiceDialog;
@@ -48,43 +52,48 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
 //        System.loadLibrary("native-lib");
 //    }
     private SerialPortManager mSerialPortManager;
+    private SharedPreferencesHelper sharedPreferencesHelper;
     private static volatile boolean isStarted = false;
     public static final int TEST = 0;
     public static final int PRODUCE = 1;
     private int crrentEnv = TEST;
     private boolean stateChange = false;
     private Toast mToast;
-    private static int index = 1;
+    private static int index = 0;
     private PointRecycleAdapter adapter;
     private ZhanPointRecycleAdapter zhanPointRecycleAdapter;
     private RecyclerView mRecyclerView;
     private RecyclerView rv_zhan_point;
+    private RecyclerView recyclerView;
     private Button iv_add;
     private Button bt_start;
     private TextView tv_state, tv_power, tv_loading, tv_error, tv_zhan_point;
-    private TextView tv_empty_site;
-    private List<SiteNode> list = new ArrayList<SiteNode>();
+    private TextView tv_empty_site,tv_empty_zhan;
+    private EditText et_ip_address;
+    private List<SiteNode> siteNodes = new ArrayList<SiteNode>();
     private static List<SiteNode> zhanPoints = new ArrayList<SiteNode>();
     public List<String> mDirs = new ArrayList<>();
+    private HorizontalProgressViewModel model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//横屏
         setContentView(R.layout.activity_main_real);
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.rv_progress);
+        sharedPreferencesHelper = new SharedPreferencesHelper(
+                MainActivity2.this, "huanan");
+        recyclerView = (RecyclerView) findViewById(R.id.rv_progress);
 
         // 引用
-        HorizontalProgressViewModel model = new HorizontalProgressViewModel();
+        model = new HorizontalProgressViewModel();
 
-        model.setViewUp(this, recyclerView, getProgressList());
-        // Example of a call to a native method
+       model.setViewUp(this, recyclerView, null);
         TextView tv = (TextView) findViewById(R.id.sample_text);
-        // Example of a call to a native method
         initSerialPort();
 
         initView();
         initRecycle();
+        initSocket();
         iv_add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -97,7 +106,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                             public void convertView(final ViewHolder holder, final BaseNiceDialog dialog) {
 
                                 ((RadioButton) holder.getView(R.id.rb_dir_top)).setChecked(true);
-                                ((RadioButton) holder.getView(R.id.rb_work_yes)).setChecked(true);
+                                ((RadioButton) holder.getView(R.id.rb_work_no)).setChecked(true);
                                 ((RadioGroup) holder.getView(R.id.radioGroup_dir)).setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
                                     @Override
                                     public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
@@ -123,7 +132,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                                             return;
                                         }
 
-                                        int position = list.size();
+                                        int position = siteNodes.size();
                                         //  在list中添加数据，并通知条目加入一条
                                         SiteNode siteNode = new SiteNode();
                                         siteNode.nodeName = name;
@@ -143,8 +152,8 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                                             mDirs.clear();
 
                                         }
-                                        list.add(siteNode);
-                                        zhanPoints = Tool.where(list, new Tool.Where<SiteNode>() {
+                                        siteNodes.add(siteNode);
+                                        zhanPoints = Tool.where(siteNodes, new Tool.Where<SiteNode>() {
                                             @Override
                                             public boolean where(SiteNode obj) {
 
@@ -153,10 +162,14 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                                         });
 
                                         zhanPointRecycleAdapter.addData(zhanPoints);
+                                        model.updateData(zhanPoints);
+                                        if(zhanPointRecycleAdapter.getItemCount() != 0) {
+                                            tv_empty_zhan.setVisibility(View.GONE);
+                                        }
 
                                         //adapter.addData(position,siteNode);
 
-                                        adapter.setList(list);
+                                        adapter.setList(siteNodes);
                                         if (adapter.getItemCount() != 0) {
                                             tv_empty_site.setVisibility(View.GONE);
                                         }
@@ -173,6 +186,94 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
 
             }
         });
+
+
+    }
+
+    private void initSocket() {
+        TaskCenter.sharedCenter().setDisconnectedCallback(new TaskCenter.OnServerDisconnectedCallbackBlock() {
+            @Override
+            public void callback(IOException e) {
+                MainActivity2.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showToast("断开连接");
+                    }
+                });
+
+            }
+        });
+
+
+        TaskCenter.sharedCenter().setConnectedCallback(new TaskCenter.OnServerConnectedCallbackBlock() {
+            @Override
+            public void callback() {
+                MainActivity2.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showToast("连接成功");
+                    }
+                });
+
+            }
+        });
+        TaskCenter.sharedCenter().setReceivedCallback(new TaskCenter.OnReceiveCallbackBlock() {
+            @Override
+            public void callback(final byte[] receicedbyges) {
+
+                MainActivity2.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(receicedbyges[0] != 0X7F || receicedbyges[receicedbyges.length-1] != 0X7E) {
+                            return;
+                        }
+                        if(receicedbyges[3] == 0X02 && receicedbyges[4] == 0X00) {
+                            showToast("可以发送下一条路线");
+                            changelLine();
+                        }else if(receicedbyges[3] == 0X01 && receicedbyges[4] == 0x01) {//收货
+                            showToast("收货");
+                            mSerialPortManager.sendBytes(CommandControl.deliver_goods());
+                        }else if(receicedbyges[3] == 0X01 && receicedbyges[4] == 0x02) {//发货
+                            showToast("发货");
+                            mSerialPortManager.sendBytes(CommandControl.receiving_goods());
+                        }
+                    }
+                });
+
+            }
+        });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        String siteNodesStr = (String) sharedPreferencesHelper.getSharedPreference("siteNodes", null);
+        Gson gson = new Gson();
+        Type listType = new TypeToken<List<SiteNode>>() {
+        }.getType();
+        siteNodes = gson.fromJson(siteNodesStr, listType);
+        adapter.setList(siteNodes);
+        zhanPoints = Tool.where(siteNodes, new Tool.Where<SiteNode>() {
+            @Override
+            public boolean where(SiteNode obj) {
+
+                return obj.isWork;
+            }
+        });
+
+        zhanPointRecycleAdapter.addData(zhanPoints);
+        model.updateData(zhanPoints);
+        if(zhanPointRecycleAdapter.getItemCount() != 0) {
+            tv_empty_zhan.setVisibility(View.GONE);
+        }
+
+        //adapter.addData(position,siteNode);
+
+        adapter.setList(siteNodes);
+        if (adapter.getItemCount() != 0) {
+            tv_empty_site.setVisibility(View.GONE);
+        }
+
     }
 
     private void initSerialPort() {
@@ -204,58 +305,25 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                                 Log.i(TAG, "是否装载:" + (isLoading ? "装载" : "空载"));
                                 boolean isError = ((bytes[4] >> 2) & 0X1) == 1;
                                 Log.i(TAG, "是否异常:" + (isError ? "异常" : "正常"));
-                                int zhanPoint = (int) bytes[5];
-                                Log.i(TAG, "当前站点:" + zhanPoint);
+                                int currentLine = (int) bytes[5];
+                                Log.i(TAG, "当前路线:" + currentLine);
                                 int power = (int) bytes[6];
                                 Log.i(TAG, "当前电量:" + power);
                                 int isOrder = (int) bytes[7];
                                 Log.i(TAG, "是否发命令:" + isOrder);
-                                //showToast(+"");
 
                                 tv_state.setText("状态:" + (isRunning ? "运行" : "空闲"));
                                 tv_loading.setText("装载情况:" + (isLoading ? "装载" : "空载"));
                                 tv_error.setText("异常情况:" + (isError ? "异常" : "正常"));
                                 tv_power.setText("电量:" + power + "%");
-                                tv_zhan_point.setText("当前站点:" + zhanPoint);
+                                tv_zhan_point.setText("当前路线:" + currentLine);
 
-//                                if(!isRunning && isStarted && !isLoading) {//空闲状态
-//
-//                                    if(crrentEnv == TEST) {
-//
-//                                        if(!stateChange) {
-//                                            stateChange = true;
-//                                            if(index == obtainDirs().size()) {
-//                                              Toast.makeText(MainActivity2.this,"已经走完全程",Toast.LENGTH_SHORT).show();
-//                                               // index = 0;
-//                                            }else{
-//                                                gotoOther(obtainDirs().get(index).replace("[","").replace("]",""));
-//                                                index ++;
-//
-//                                            }
-//
-//
-//                                        }
-//
-//
-//                                    }else if(crrentEnv == PRODUCE && isLoading) {
-//                                        //gotoOther();
-//                                    }
-//
-//                                }else{
-//                                    stateChange = false;
-//                                }
 
-                                if (isOrder == 1 && obtainDirs() != null) {
+                                if (isOrder == 1 && obtainDirs() != null) {//准备完成了，向PLC发命令
 
-                                    if (index == obtainDirs().size()) {
-                                        Toast.makeText(MainActivity2.this, "已经走完全程", Toast.LENGTH_SHORT).show();
-                                        bt_start.setEnabled(true);
-                                        // index = 0;
-                                    } else {
-                                        gotoOther(obtainDirs().get(index).replace("[", "").replace("]", ""));
-                                        index++;
-
-                                    }
+                                    //changelLine();
+                                    byte state = (byte) (bytes[4] | (byte) 0x08);//把进站状态加上
+                                    TaskCenter.sharedCenter().send(CommandControl.orderToPLC(state));
                                 }
                             }
                         });
@@ -270,7 +338,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                showToast(String.format("发送\n%s", new String(finalBytes)));
+                                //showToast(String.format("发送\n%s", new String(finalBytes)));
                             }
                         });
                     }
@@ -280,39 +348,17 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         Log.i(TAG, "onCreate: openSerialPort = " + openSerialPort);
     }
 
-    /**
-     * 模拟节点数据
-     * node1.nodeStatus: 0 已完成状态  1正在处理状态  -1待处理状态
-     *
-     * @return
-     */
-    private List<Node> getProgressList() {
-        List<Node> list = new ArrayList<>();
+    //封装下一条路线
+    private void changelLine() {
+        if (index == obtainDirs().size()) {
+            Toast.makeText(MainActivity2.this, "已经走完全程", Toast.LENGTH_SHORT).show();
+            bt_start.setEnabled(true);
+            // index = 0;
+        } else {
+            gotoOther(Tool.trimStr(obtainDirs().get(index)));
+            index++;
 
-        Node node1 = new Node();
-        Node node2 = new Node();
-        Node node3 = new Node();
-        Node node4 = new Node();
-
-        node1.nodeName = "出车";
-        node1.nodeStatus = 0;
-
-        node2.nodeName = "加工区";
-        node2.nodeStatus = 0;
-
-        node3.nodeName = "成品区";
-        node3.nodeStatus = 0;
-
-        node4.nodeName = "回车";
-        node4.nodeStatus = -1;
-
-
-        list.add(node1);
-        list.add(node2);
-        list.add(node3);
-        list.add(node4);
-        return list;
-
+        }
     }
 
     private void initRecycle() {
@@ -320,8 +366,8 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(linearLayoutManager);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        list = initData();
-        adapter = new PointRecycleAdapter(MainActivity2.this, list);
+        siteNodes = initData();
+        adapter = new PointRecycleAdapter(MainActivity2.this, siteNodes);
         mRecyclerView.setAdapter(adapter);
 //      添加动画
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -347,6 +393,9 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         tv_zhan_point = findViewById(R.id.tv_zhan_point);
 
         tv_empty_site = findViewById(R.id.tv_empty_site);
+        tv_empty_zhan = findViewById(R.id.tv_empty_zhan);
+        et_ip_address = findViewById(R.id.et_ip_address);
+
     }
 
     protected ArrayList<SiteNode> initData() {
@@ -374,12 +423,10 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                                 showToast("请添加站点");
                                 return;
                             }
-                            index = 0;
-                            gotoOther(obtainDirs().get(index).replace("[", "").replace("]", ""));
+                            gotoOther(Tool.trimStr(obtainDirs().get(index)));
                             index ++;
-                            Log.i(TAG, obtainDirs().toString());
-                            dialog.dismiss();
                             bt_start.setEnabled(false);
+                            dialog.dismiss();
 
                         }
                     });
@@ -396,8 +443,9 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         }
 
     }
-
+    //急停
     public void bt_stop(View view){
+        cleanSite();
         if(mSerialPortManager != null) {
             mSerialPortManager.stop();
         }
@@ -415,12 +463,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                 holder.setOnClickListener(R.id.bt_sure, new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        list.clear();
-                        adapter.notifyDataSetChanged();
-                        tv_empty_site.setVisibility(View.VISIBLE);
-                        zhanPoints.clear();
-                        zhanPointRecycleAdapter.notifyDataSetChanged();
-                        bt_start.setEnabled(true);
+                        cleanSite();
                         dialog.dismiss();
                     }
                 });
@@ -436,6 +479,20 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
 
 
 
+    }
+
+    /*
+    * 清除节点数据
+    * */
+    private void cleanSite() {
+        siteNodes.clear();
+        adapter.notifyDataSetChanged();
+        tv_empty_site.setVisibility(View.VISIBLE);
+        zhanPoints.clear();
+        zhanPointRecycleAdapter.notifyDataSetChanged();
+        bt_start.setEnabled(true);
+        tv_empty_zhan.setVisibility(View.VISIBLE);
+        mDirs.clear();
     }
 
     private List<String> obtainDirs() {
@@ -515,4 +572,59 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         mToast.setText(content);
         mToast.show();
     }
+
+//    @Override
+//    protected void onDestroy() {
+//        super.onDestroy();
+//
+////        List<SiteNode> list = new ArrayList<SiteNode>();
+//        Gson gson = new Gson();
+//        String data = gson.toJson(siteNodes);
+//        sharedPreferencesHelper.put("siteNodes", data);
+//    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Gson gson = new Gson();
+        String data = gson.toJson(siteNodes);
+        sharedPreferencesHelper.put("siteNodes", data);
+    }
+
+    public void connect(View view) {
+        String addressPort = et_ip_address.getText().toString();
+        if(TextUtils.isEmpty(addressPort)) {
+            showToast("IP地址不能为空");
+            return;
+        }
+        String[] adp = addressPort.trim().split(":");
+        if(adp.length != 2|| TextUtils.isEmpty(adp[0]) || TextUtils.isEmpty(adp[1])) {
+            showToast("IP端口设置不正确,请重新设置");
+            et_ip_address.setText("");
+            return;
+        }
+
+        try {
+            TaskCenter.sharedCenter().connect(adp[0],Integer.parseInt(adp[1]));
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            showToast("IP端口设置不正确,请重新设置");
+        }
+    }
+
+    public void disconnect(View view) {
+        //TaskCenter.sharedCenter().disconnect();
+
+//        byte state = 0X0A;
+//        TaskCenter.sharedCenter().send(CommandControl.orderToPLC(state));
+
+        byte a = 0X02;
+        byte b = 0X08;
+
+        byte c = (byte) (a|b);
+
+        showToast("IP");
+    }
+
+
 }

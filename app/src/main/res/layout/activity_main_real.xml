@@ -31,14 +31,14 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:textStyle="bold"
-            android:text="状态"/>
+            android:text="状态：暂无"/>
         <TextView
             android:id="@+id/tv_power"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:textStyle="bold"
-            android:text="电量"
+            android:text="电量：暂无"
             />
         <TextView
             android:id="@+id/tv_error"
@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:textStyle="bold"
-            android:text="故障"/>
+            android:text="故障：暂无"/>
         <TextView
             android:id="@+id/tv_loading"
             android:layout_width="wrap_content"
@@ -61,8 +61,34 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:textStyle="bold"
+            android:visibility="gone"
             android:text=""/>
-
+        <EditText
+            android:id="@+id/et_ip_address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:text="192.168.31.235:9090"
+            android:hint="请输入PLC IP地址和端口号"/>
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:background="@drawable/shape_button"
+            android:layout_marginLeft="20dp"
+            android:textColor="@android:color/white"
+            android:text="点击连接"
+            android:onClick="connect"
+            />
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:background="@drawable/shape_button"
+            android:layout_marginLeft="20dp"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            android:text="断开连接"
+            android:onClick="disconnect"/>
     </LinearLayout>
 
     <LinearLayout
@@ -77,6 +103,7 @@
             android:layout_margin="10dp">
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/rv_progress"
+                android:minHeight="50dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
             <LinearLayout
@@ -205,7 +232,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="节点名称"/>
+                        android:text="站点名称"/>
                     <TextView
                         android:layout_weight="1"
                         android:layout_width="0dp"
@@ -217,17 +244,27 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="节点方向"/>
+                        android:text="站点路线"/>
 
                 </LinearLayout>
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                <TextView
+                    android:id="@+id/tv_empty_zhan"
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:drawablePadding="10dp"
+                    android:text="暂无站点,快来添加站点试试吧"
+                    android:drawableTop="@mipmap/ic_empty_box"/>
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/rv_zhan_point"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
+                </FrameLayout>
             </LinearLayout>
-
-
-
         </FrameLayout>
     </LinearLayout>
 </LinearLayout>
