@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.List;
 
@@ -91,7 +90,7 @@ public class PointRecycleAdapter extends RecyclerView.Adapter<PointRecycleAdapte
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Toast.makeText(context, "当前点击 "+ list.get(getLayoutPosition()), Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(context, "当前点击 "+ list.get(getLayoutPosition()), Toast.LENGTH_SHORT).show();
                 }
             });
         }

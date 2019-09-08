@@ -15,7 +15,7 @@ public class TaskCenter {
     private static TaskCenter instance;
     private static final String TAG = "TaskCenter";
 //    Socket
-    private Socket socket;
+    private static Socket socket;
 //    IP地址
     private String ipAddress;
 //    端口号

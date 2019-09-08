@@ -69,7 +69,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
     private TextView tv_state, tv_power, tv_loading, tv_error, tv_zhan_point;
     private TextView tv_empty_site,tv_empty_zhan;
     private EditText et_ip_address;
-    private List<SiteNode> siteNodes = new ArrayList<SiteNode>();
+    private List<SiteNode> siteNodes ;//;
     private static List<SiteNode> zhanPoints = new ArrayList<SiteNode>();
     public List<String> mDirs = new ArrayList<>();
     //private HorizontalProgressViewModel model;
@@ -227,14 +227,17 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                             return;
                         }
                         if(receicedbyges[3] == 0X02 && receicedbyges[4] == 0X00) {
-                            showToast("可以发送下一条路线");
+                            //showToast("可以发送下一条路线");
+                            Log.d(TAG,"可以走下一条线路");
                             changelLine();
-                        }else if(receicedbyges[3] == 0X01 && receicedbyges[4] == 0x01) {//收货
-                            showToast("收货");
-                            mSerialPortManager.sendBytes(CommandControl.deliver_goods());
-                        }else if(receicedbyges[3] == 0X01 && receicedbyges[4] == 0x02) {//发货
-                            showToast("发货");
-                            mSerialPortManager.sendBytes(CommandControl.receiving_goods());
+                        }else if(receicedbyges[3] == 0X01 && receicedbyges[4] == 0x01) {//PLC收货
+                            //showToast("收货");
+                            boolean sendBytes = mSerialPortManager.sendBytes(CommandControl.deliver_goods());
+                            Log.i(TAG, sendBytes?"发送成功":"发送失败");
+                        }else if(receicedbyges[3] == 0X01 && receicedbyges[4] == 0x02) {//PLC发货
+                            //showToast("发货");
+                            boolean sendBytes = mSerialPortManager.sendBytes(CommandControl.receiving_goods());
+                            Log.i(TAG, sendBytes?"发送成功":"发送失败");
                         }
                     }
                 });
@@ -252,6 +255,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         }.getType();
         siteNodes = gson.fromJson(siteNodesStr, listType);
         if(siteNodes == null) {
+            siteNodes = new ArrayList<SiteNode>();
             return;
         }
         adapter.setList(siteNodes);
@@ -353,9 +357,10 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
     //封装下一条路线
     private void changelLine() {
         if (index == obtainDirs().size()) {
-            Toast.makeText(MainActivity2.this, "已经走完全程", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(MainActivity2.this, "已经走完全程", Toast.LENGTH_SHORT).show();
             bt_start.setEnabled(true);
-            // index = 0;
+            index = 0;
+            //gotoOther(Tool.trimStr(obtainDirs().get(index)));
         } else {
             gotoOther(Tool.trimStr(obtainDirs().get(index)));
             index++;
@@ -487,6 +492,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
     * 清除节点数据
     * */
     private void cleanSite() {
+        index = 0;
         siteNodes.clear();
         adapter.notifyDataSetChanged();
         tv_empty_site.setVisibility(View.VISIBLE);
@@ -495,6 +501,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         bt_start.setEnabled(true);
         tv_empty_zhan.setVisibility(View.VISIBLE);
         mDirs.clear();
+        sharedPreferencesHelper.clear();
     }
 
     private List<String> obtainDirs() {
@@ -515,7 +522,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
     // public native String stringFromJNI();
     @Override
     public void onSuccess(File device) {
-        Toast.makeText(getApplicationContext(), String.format("串口 [%s] 打开成功", device.getPath()), Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getApplicationContext(), String.format("串口 [%s] 打开成功", device.getPath()), Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -575,15 +582,6 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         mToast.show();
     }
 
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
-//
-////        List<SiteNode> list = new ArrayList<SiteNode>();
-//        Gson gson = new Gson();
-//        String data = gson.toJson(siteNodes);
-//        sharedPreferencesHelper.put("siteNodes", data);
-//    }
 
     @Override
     protected void onStop() {
@@ -620,12 +618,15 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
 //        byte state = 0X0A;
 //        TaskCenter.sharedCenter().send(CommandControl.orderToPLC(state));
 
-        byte a = 0X02;
-        byte b = 0X08;
+//        byte a = 0X02;
+//        byte b = 0X08;
+//
+//        byte c = (byte) (a|b);
+//
+//        showToast("IP");
 
-        byte c = (byte) (a|b);
-
-        showToast("IP");
+        index = 0;
+        bt_start.setEnabled(true);
     }
 /*
 * 修改超声参数
