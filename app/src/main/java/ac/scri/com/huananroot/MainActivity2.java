@@ -36,7 +36,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import ac.scri.com.huananroot.adapter.ZhanPointRecycleAdapter;
-import ac.scri.com.huananroot.view.HorizontalProgressViewModel;
 import ac.scri.com.huananroot.view.PointRecycleAdapter;
 import ac.scri.com.huananroot.view.nicedialog.BaseNiceDialog;
 import ac.scri.com.huananroot.view.nicedialog.NiceDialog;
@@ -73,7 +72,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
     private List<SiteNode> siteNodes = new ArrayList<SiteNode>();
     private static List<SiteNode> zhanPoints = new ArrayList<SiteNode>();
     public List<String> mDirs = new ArrayList<>();
-    private HorizontalProgressViewModel model;
+    //private HorizontalProgressViewModel model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,12 +81,12 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         setContentView(R.layout.activity_main_real);
         sharedPreferencesHelper = new SharedPreferencesHelper(
                 MainActivity2.this, "huanan");
-        recyclerView = (RecyclerView) findViewById(R.id.rv_progress);
+        //recyclerView = (RecyclerView) findViewById(R.id.rv_progress);
 
         // 引用
-        model = new HorizontalProgressViewModel();
+        //model = new HorizontalProgressViewModel();
 
-       model.setViewUp(this, recyclerView, null);
+       //model.setViewUp(this, recyclerView, null);
         TextView tv = (TextView) findViewById(R.id.sample_text);
         initSerialPort();
 
@@ -162,7 +161,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                                         });
 
                                         zhanPointRecycleAdapter.addData(zhanPoints);
-                                        model.updateData(zhanPoints);
+                                       // model.updateData(zhanPoints);
                                         if(zhanPointRecycleAdapter.getItemCount() != 0) {
                                             tv_empty_zhan.setVisibility(View.GONE);
                                         }
@@ -252,6 +251,9 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         Type listType = new TypeToken<List<SiteNode>>() {
         }.getType();
         siteNodes = gson.fromJson(siteNodesStr, listType);
+        if(siteNodes == null) {
+            return;
+        }
         adapter.setList(siteNodes);
         zhanPoints = Tool.where(siteNodes, new Tool.Where<SiteNode>() {
             @Override
@@ -262,7 +264,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         });
 
         zhanPointRecycleAdapter.addData(zhanPoints);
-        model.updateData(zhanPoints);
+        //model.updateData(zhanPoints);
         if(zhanPointRecycleAdapter.getItemCount() != 0) {
             tv_empty_zhan.setVisibility(View.GONE);
         }
@@ -624,6 +626,33 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         byte c = (byte) (a|b);
 
         showToast("IP");
+    }
+/*
+* 修改超声参数
+* */
+    public void bt_supersound(View view){
+        NiceDialog.init().setLayoutId(R.layout.dialog_supersound_fix).setConvertListener(new ViewConvertListener() {
+            @Override
+            public void convertView(final ViewHolder holder, final BaseNiceDialog dialog) {
+                holder.setOnClickListener(R.id.tv_sure, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        String front = ((EditText)holder.getView(R.id.et_front)).getText().toString();
+                        String after = ((EditText)holder.getView(R.id.et_after)).getText().toString();
+                        try {
+                            int frontInt = Integer.parseInt(front);
+                            int afterInt = Integer.parseInt(after);
+                            mSerialPortManager.sendBytes(CommandControl.fix_supersound((byte) frontInt,(byte) afterInt));
+                            dialog.dismiss();
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
+                            showToast("参数非法");
+                        }
+                    }
+                });
+
+            }
+        }).setDimAmount(0.3f).setPosition(Gravity.CENTER).setWidth(400).setOutCancel(true).show(getSupportFragmentManager());
     }
 
 

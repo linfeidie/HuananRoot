@@ -22,8 +22,8 @@
 
         </activity>
         <activity android:name=".LoginActivity">
-
         </activity>
+        <activity android:name=".ChargingActivity"></activity>
         <!-- 程序自启动广播 -->
         <!--<receiver-->
             <!--android:name=".MyReceiver"-->
