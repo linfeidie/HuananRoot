@@ -50,8 +50,8 @@ public class ZhanPointRecycleAdapter extends RecyclerView.Adapter<ZhanPointRecyc
     public void onBindViewHolder(@NonNull ZPViewHolder holder, int position) {
         SiteNode siteNode = list.get(position);
         holder.tv_name.setText(siteNode.nodeName);
-        holder.tv_num.setText(siteNode.nodeNum+"");
-        holder.tv_current.setText(Tool.trimStr(siteNode.dirs.toString()));
+        holder.tv_num.setText(holder.getAdapterPosition()+"");
+        holder.tv_current.setText(Tool.trimStr(siteNode.dirs.toString()).replace(",","->"));
     }
 
     @Override

@@ -67,6 +67,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
     private Button iv_add;
     private Button bt_start;
     private TextView tv_state, tv_power, tv_loading, tv_error, tv_zhan_point;
+    private TextView tv_connect;
     private TextView tv_empty_site,tv_empty_zhan;
     private EditText et_ip_address;
     private List<SiteNode> siteNodes ;//;
@@ -197,6 +198,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                     @Override
                     public void run() {
                         showToast("断开连接");
+                        tv_connect.setText("已断开PLC");
                     }
                 });
 
@@ -210,6 +212,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                 MainActivity2.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        tv_connect.setText("已连接PLC");
                         showToast("连接成功");
                     }
                 });
@@ -360,7 +363,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
             //Toast.makeText(MainActivity2.this, "已经走完全程", Toast.LENGTH_SHORT).show();
             bt_start.setEnabled(true);
             index = 0;
-            //gotoOther(Tool.trimStr(obtainDirs().get(index)));
+            gotoOther(Tool.trimStr(obtainDirs().get(index)));
         } else {
             gotoOther(Tool.trimStr(obtainDirs().get(index)));
             index++;
@@ -402,6 +405,8 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         tv_empty_site = findViewById(R.id.tv_empty_site);
         tv_empty_zhan = findViewById(R.id.tv_empty_zhan);
         et_ip_address = findViewById(R.id.et_ip_address);
+
+        tv_connect = findViewById(R.id.tv_connect);
 
     }
 
@@ -643,7 +648,9 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                         try {
                             int frontInt = Integer.parseInt(front);
                             int afterInt = Integer.parseInt(after);
-                            mSerialPortManager.sendBytes(CommandControl.fix_supersound((byte) frontInt,(byte) afterInt));
+                            boolean sendBytes = mSerialPortManager.sendBytes(CommandControl.fix_supersound((byte) frontInt,(byte) afterInt));
+                            showToast("超声修改成功");
+                            Log.i(TAG, sendBytes?"发送成功":"发送失败");
                             dialog.dismiss();
                         } catch (NumberFormatException e) {
                             e.printStackTrace();
