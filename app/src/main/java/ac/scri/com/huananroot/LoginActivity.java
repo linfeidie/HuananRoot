@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -27,6 +28,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//横屏
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         setContentView(R.layout.activity_login);
 
         loginAccount_id = findViewById(R.id.loginAccount_id);
@@ -72,5 +75,19 @@ public class LoginActivity extends AppCompatActivity {
 
         return true;
     }
-
+//    private void adjustPriority(
+//            List<PackageParser.Activity> systemActivities, ActivityIntentInfo intent) {
+//        // nothing to do; priority is fine as-is
+//        if (intent.getPriority() <= 0) {
+//            return;
+//        }
+//
+//        final ActivityInfo activityInfo = intent.activity.info;
+//        final ApplicationInfo applicationInfo = activityInfo.applicationInfo;
+//
+//        if("your pacakgename".equals(applicationInfo.packageName)
+//                && "your activity classname".equals(intent.activity.className)) {
+//            return;
+//        }
+//    }
 }

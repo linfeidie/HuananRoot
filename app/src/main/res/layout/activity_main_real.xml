@@ -88,7 +88,7 @@
             android:layout_marginLeft="20dp"
             android:textColor="@android:color/white"
             android:gravity="center"
-            android:text="断开连接"
+            android:text="重置"
             android:onClick="disconnect"/>
     </LinearLayout>
 
