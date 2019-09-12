@@ -200,7 +200,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                     @Override
                     public void run() {
                         showToast("断开连接");
-                        tv_connect.setText("已断开PLC");
+                        tv_connect.setText("断开连接");
                     }
                 });
 
@@ -214,8 +214,8 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                 MainActivity2.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        tv_connect.setText("已连接PLC");
-                        showToast("连接成功");
+                        tv_connect.setText("已启动");
+                        showToast("已启动");
                     }
                 });
 
@@ -232,7 +232,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                             return;
                         }
                         if(receicedbyges[3] == 0X02 && receicedbyges[4] == 0X00) {
-                            //showToast("可以发送下一条路线");
+                            showToast(byteArrToHex(receicedbyges));
                             Log.d(TAG,"可以走下一条线路");
                             changelLine();
                         }else if(receicedbyges[3] == 0X01 && receicedbyges[4] == 0x01) {//PLC收货
@@ -335,6 +335,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
                                     //changelLine();
                                     byte state = (byte) (bytes[4] | (byte) 0x08);//把进站状态加上
                                     TaskCenter.sharedCenter().send(CommandControl.orderToPLC(state));
+                                    Toast.makeText(MainActivity2.this,"通知PLC",Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });
@@ -599,41 +600,56 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
     }
 
     public void connect(View view) {
-        String addressPort = et_ip_address.getText().toString();
-        if(TextUtils.isEmpty(addressPort)) {
-            showToast("IP地址不能为空");
-            return;
-        }
-        String[] adp = addressPort.trim().split(":");
-        if(adp.length != 2|| TextUtils.isEmpty(adp[0]) || TextUtils.isEmpty(adp[1])) {
-            showToast("IP端口设置不正确,请重新设置");
-            et_ip_address.setText("");
-            return;
-        }
+//        String addressPort = et_ip_address.getText().toString();
+//        if(TextUtils.isEmpty(addressPort)) {
+//            showToast("IP地址不能为空");
+//            return;
+//        }
+//        String[] adp = addressPort.trim().split(":");
+//        if(adp.length != 2|| TextUtils.isEmpty(adp[0]) || TextUtils.isEmpty(adp[1])) {
+//            showToast("IP端口设置不正确,请重新设置");
+//            et_ip_address.setText("");
+//            return;
+//        }
 
-        try {
-            TaskCenter.sharedCenter().connect(adp[0],Integer.parseInt(adp[1]));
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-            showToast("IP端口设置不正确,请重新设置");
-        }
+
+
+        NiceDialog.init().setLayoutId(R.layout.dialog_request_sure).setConvertListener(new ViewConvertListener() {
+            @Override
+            public void convertView(ViewHolder holder, final BaseNiceDialog dialog) {
+                holder.setOnClickListener(R.id.bt_sure, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        try {
+                            //  TaskCenter.sharedCenter().connect(adp[0],Integer.parseInt(adp[1]));
+                            TaskCenter.sharedCenter().startAction();
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
+                            showToast("启动失败");
+                        }
+
+                        dialog.dismiss();
+
+                    }
+                });
+                holder.setOnClickListener(R.id.bt_cancel, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        dialog.dismiss();
+                    }
+                });
+            }
+        }).setDimAmount(0.3f).setPosition(Gravity.CENTER).setWidth(400).setOutCancel(false).show(getSupportFragmentManager());
     }
 
     public void disconnect(View view) {
-        //TaskCenter.sharedCenter().disconnect();
-
-//        byte state = 0X0A;
-//        TaskCenter.sharedCenter().send(CommandControl.orderToPLC(state));
-
-//        byte a = 0X02;
-//        byte b = 0X08;
-//
-//        byte c = (byte) (a|b);
-//
-//        showToast("IP");
 
         index = 0;
         bt_start.setEnabled(true);
+
+//        byte state = (byte) 0x07;
+//        TaskCenter.sharedCenter().send(CommandControl.orderToPLC(state));
+//        Toast.makeText(MainActivity2.this,"通知PLC",Toast.LENGTH_SHORT).show();
     }
 /*
 * 修改超声参数
@@ -663,6 +679,16 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
 
             }
         }).setDimAmount(0.3f).setPosition(Gravity.CENTER).setWidth(400).setOutCancel(true).show(getSupportFragmentManager());
+    }
+    private static final char HexCharArr[] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+    public static String byteArrToHex(byte[] btArr) {
+        char strArr[] = new char[btArr.length * 2];
+        int i = 0;
+        for (byte bt : btArr) {
+            strArr[i++] = HexCharArr[bt>>>4 & 0xf];
+            strArr[i++] = HexCharArr[bt & 0xf];
+        }
+        return new String(strArr);
     }
 
 

@@ -5,6 +5,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
@@ -54,39 +55,106 @@ public class TaskCenter {
      */
     public void connect(final String ipAddress, final int port) {
 
-        thread = new Thread(new Runnable() {
+//        thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    socket = new Socket(ipAddress, port);
+////                    socket.setSoTimeout ( 2 * 1000 );//设置超时时间
+//                    if (isConnected()) {
+//                        TaskCenter.sharedCenter().ipAddress = ipAddress;
+//                        TaskCenter.sharedCenter().port = port;
+//                        if (connectedCallback != null) {
+//                            connectedCallback.callback();
+//                        }
+//                        outputStream = socket.getOutputStream();
+//                        inputStream = socket.getInputStream();
+//                        receive();
+//                        Log.i(TAG,"连接成功");
+//                    }else {
+//                        Log.i(TAG,"连接失败");
+//                        if (disconnectedCallback != null) {
+//                            disconnectedCallback.callback(new IOException("连接失败"));
+//                        }
+//                    }
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                    Log.e(TAG,"连接异常");
+//                    if (disconnectedCallback != null) {
+//                        disconnectedCallback.callback(e);
+//                    }
+//                }
+//            }
+//        });
+//        thread.start();
+    }
+
+    public void startAction(){
+        new Thread(new Runnable() {
             @Override
             public void run() {
+                ServerSocket serverSocket=null;
                 try {
-                    socket = new Socket(ipAddress, port);
-//                    socket.setSoTimeout ( 2 * 1000 );//设置超时时间
-                    if (isConnected()) {
-                        TaskCenter.sharedCenter().ipAddress = ipAddress;
-                        TaskCenter.sharedCenter().port = port;
-                        if (connectedCallback != null) {
-                            connectedCallback.callback();
-                        }
-                        outputStream = socket.getOutputStream();
-                        inputStream = socket.getInputStream();
-                        receive();
-                        Log.i(TAG,"连接成功");
-                    }else {
-                        Log.i(TAG,"连接失败");
-                        if (disconnectedCallback != null) {
-                            disconnectedCallback.callback(new IOException("连接失败"));
-                        }
+                    serverSocket=new ServerSocket(9090);  //端口号
+                    Log.d(TAG,"服务端服务启动监听：\"");
+                    //通过死循环开启长连接，开启线程去处理消息
+                    while(true){
+                        socket=serverSocket.accept();
+                        new Thread(new MyRuns(socket)).start();
+
+
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
-                    Log.e(TAG,"连接异常");
-                    if (disconnectedCallback != null) {
-                        disconnectedCallback.callback(e);
+                } finally {
+                    try {
+                        if (serverSocket!=null) {
+                            serverSocket.close();
+                        }
+                    } catch (Exception e2) {
+                        e2.printStackTrace();
                     }
                 }
             }
-        });
-        thread.start();
+        }).start();
+
     }
+
+    class MyRuns implements Runnable{
+
+        Socket socket;
+
+        public MyRuns(Socket socket) {
+            super();
+            this.socket = socket;
+        }
+
+        public void run() {
+            try {
+//                    socket.setSoTimeout ( 2 * 1000 );//设置超时时间
+                if (isConnected()) {
+                    if (connectedCallback != null) {
+                        connectedCallback.callback();
+                    }
+                    outputStream = socket.getOutputStream();
+                    inputStream = socket.getInputStream();
+                    receive();
+                    Log.i(TAG,"连接成功");
+                }else {
+                    Log.i(TAG,"连接失败");
+                    if (disconnectedCallback != null) {
+                        disconnectedCallback.callback(new IOException("连接失败"));
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.e(TAG,"连接异常");
+                if (disconnectedCallback != null) {
+                    disconnectedCallback.callback(e);
+                }
+            }
+            }
+        }
     /**
      * 判断是否连接
      */
@@ -129,6 +197,10 @@ public class TaskCenter {
                 byte[] bt = new byte[1024];
 //                获取接收到的字节和字节数
                 int length = inputStream.read(bt);
+                if(length == -1) {
+                    disconnect();
+                    return;
+                }
 //                获取正确的字节
                 byte[] bs = new byte[length];
                 System.arraycopy(bt, 0, bs, 0, length);
@@ -156,6 +228,8 @@ public class TaskCenter {
             public void run() {
                 if (socket != null) {
                     try {
+                        //Toast.makeText()
+                        socket.getInetAddress().toString();
                         outputStream.write(data);
                         outputStream.flush();
                         Log.i(TAG,"发送成功");
