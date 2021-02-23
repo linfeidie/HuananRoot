@@ -1,10 +1,10 @@
 package ac.scri.com.huananroot;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -43,7 +43,7 @@ import ac.scri.com.huananroot.view.nicedialog.NiceDialog;
 import ac.scri.com.huananroot.view.nicedialog.ViewConvertListener;
 import ac.scri.com.huananroot.view.nicedialog.ViewHolder;
 
-public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPortListener {
+public class MainActivity2 extends Activity implements OnOpenSerialPortListener {
 
     public static final String TAG = MainActivity2.class.getSimpleName();
 
